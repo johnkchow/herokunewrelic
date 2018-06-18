@@ -9,7 +9,6 @@ import (
 func main() {
 	appName := getEnv("NEW_RELIC_APP_NAME", "HEROKU_APP_NAME")
 	licenseKey := getEnv("NEW_RELIC_LICENSE_KEY")
-	//logplexDrainToken := getEnv("LOGPLEX_DRAIN_TOKEN")
 	authSecret := os.Getenv("AUTH_SECRET")
 
 	config := nr.NewConfig(appName, licenseKey)
@@ -27,7 +26,6 @@ func main() {
 	http.HandleFunc(nr.WrapHandleFunc(app, "/", func(rw http.ResponseWriter, req *http.Request) {
 		/*
 			TODO: Things to consider:
-			  [X] Drain Token Security
 			  [X] NewRelic
 				[ ] Tagged logs with Request ID
 			  [ ] Be idempotent (Logplex-Frame-Id)
@@ -39,20 +37,12 @@ func main() {
 			  [ ] Logging for future debugging e.g. `User-Agent` since it maps to release version
 		*/
 
-		//token := req.Header.Get("Logplex-Drain-Token")
-
-		//if token != logplexDrainToken {
-		//logger.Debugf("Bad token password. '%s' does not match '%s'", token, logplexDrainToken)
-		////rw.WriteHeader(http.StatusUnauthorized)
-		//return
-		//}
-
 		if authSecret != "" {
 			_, pass, ok := req.BasicAuth()
 
 			if !ok || authSecret != pass {
 				logger.Debugf("Bad auth secret. '%s' does not match '%s'", pass, authSecret)
-				//rw.WriteHeader(http.StatusUnauthorized)
+				rw.WriteHeader(http.StatusUnauthorized)
 				return
 			}
 		}

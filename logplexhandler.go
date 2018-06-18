@@ -20,7 +20,7 @@ func newLogplexHandler(app nr.Application) http.HandlerFunc {
 		}
 
 		if err != nil {
-			logger.Warnf("Error parsing frames: %s", err.Error())
+			logger.Errorf("Error parsing frames: %s", err.Error())
 			rr.WriteHeader(http.StatusBadRequest)
 			return
 		}
