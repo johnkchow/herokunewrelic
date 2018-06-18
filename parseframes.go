@@ -78,7 +78,7 @@ func parseFramesWithBufSize(body io.Reader, bufSize int) ([][]byte, error) {
 			lastState = 1
 			mi := bufIdx
 
-			for buffer[mi] != ' ' && mi < bufLen {
+			for mi < bufLen && buffer[mi] != ' ' {
 				mi++
 			}
 

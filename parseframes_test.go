@@ -24,6 +24,16 @@ func TestParseFrameBodyExceedingBufferSize(t *testing.T) {
 	assert.Equal(t, [][]byte{[]byte("123456789 "), []byte("12 3 ")}, msgs)
 }
 
+func TestParseFrameLengthEndOfBuffer(t *testing.T) {
+	body := bytes.NewReader([]byte("2 1210 1234567890"))
+	bufSize := 5
+	msgs, err := parseFramesWithBufSize(body, bufSize)
+
+	assert.Nil(t, err)
+	assert.Len(t, msgs, 2)
+	assert.Equal(t, [][]byte{[]byte("12"), []byte("1234567890")}, msgs)
+}
+
 func TestParseFrameLengthExceedActualStringSize(t *testing.T) {
 	msg := []byte("9 1")
 
