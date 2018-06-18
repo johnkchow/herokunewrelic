@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"github.com/pkg/errors"
 	"io"
+	"os"
 	"strconv"
+	"strings"
 )
 
 func minInt(x, y int) int {
@@ -27,6 +29,23 @@ func parseFrames(body io.Reader) ([][]byte, error) {
 }
 
 func parseFramesWithBufSize(body io.Reader, bufSize int) ([][]byte, error) {
+	var bodyStr string
+	var bodyLen int64
+
+	if os.Getenv("APP_ENV") == "development" {
+		bodyBuf := new(bytes.Buffer)
+		var err error
+		bodyLen, err = bodyBuf.ReadFrom(body)
+
+		if err != nil {
+			return nil, err
+		}
+
+		bodyStr = bodyBuf.String()
+
+		body = strings.NewReader(bodyStr)
+	}
+
 	buffer := make([]byte, bufSize)
 
 	// State machine to parse body.
@@ -141,6 +160,7 @@ func parseFramesWithBufSize(body io.Reader, bufSize int) ([][]byte, error) {
 		logger.Debugf("Message '%s'", string(m))
 	}
 	logger.Debugf("Final state: %v, lastState: %v", state, lastState)
+	logger.Debugf("Body (%v): %s", bodyLen, bodyStr)
 
 	if state == 1 && lastState == 2 {
 		return messages, nil
