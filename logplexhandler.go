@@ -17,6 +17,8 @@ func newLogplexHandler(app nr.Application) http.HandlerFunc {
 			// app's name whatsoever, so we must set it as the username when adding a
 			// HTTPs log drain
 			logger.Errorf("Basic auth's username, used for Heroku app name, was not set for drain token `%s` thus we cannot record metric", logDrainToken)
+			rr.WriteHeader(http.StatusInternalServerError)
+			return
 		}
 
 		if err != nil {
