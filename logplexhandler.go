@@ -54,7 +54,7 @@ func newLogplexHandler(app nr.Application) http.HandlerFunc {
 
 			if err != nil {
 				logger.Debugf("Error parsing metrics: %s", err.Error())
-				return
+				continue
 			}
 
 			// NewRelic only receives either seconds or milliseconds.

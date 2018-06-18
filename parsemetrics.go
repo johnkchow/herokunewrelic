@@ -8,7 +8,7 @@ import (
 )
 
 // Heroku metrics regex format
-var metricsRegex = regexp.MustCompile(`^\s*([!-~]+=[!-~]\s)+\s*$`)
+var metricsRegex = regexp.MustCompile(`^\s*([!-~]+=[!-~]+\s*)+$`)
 
 // Regex to find/replace with nothing
 var normalizeRegex = regexp.MustCompile(`^sample#`)
@@ -16,7 +16,7 @@ var normalizeRegex = regexp.MustCompile(`^sample#`)
 // parseMetrics This function returns a map of all the attributes. This **only** parses for Dyno + Postgres metrics, and will return an error if it isn't a metric log
 func parseMetrics(body string) (map[string]interface{}, error) {
 
-	if metricsRegex.MatchString(body) {
+	if !metricsRegex.MatchString(body) {
 		return nil, errors.New("Parsing error: invalid kvp format")
 	}
 
