@@ -4,9 +4,7 @@ import (
 	"bytes"
 	"github.com/pkg/errors"
 	"io"
-	"os"
 	"strconv"
-	"strings"
 )
 
 func minInt(x, y int) int {
@@ -31,20 +29,6 @@ func parseFrames(body io.Reader) ([][]byte, error) {
 func parseFramesWithBufSize(body io.Reader, bufSize int) ([][]byte, error) {
 	var bodyStr string
 	var bodyLen int64
-
-	if os.Getenv("APP_ENV") == "development" {
-		bodyBuf := new(bytes.Buffer)
-		var err error
-		bodyLen, err = bodyBuf.ReadFrom(body)
-
-		if err != nil {
-			return nil, err
-		}
-
-		bodyStr = bodyBuf.String()
-
-		body = strings.NewReader(bodyStr)
-	}
 
 	buffer := make([]byte, bufSize)
 
@@ -86,7 +70,7 @@ func parseFramesWithBufSize(body io.Reader, bufSize int) ([][]byte, error) {
 				return nil, errors.Wrap(err, "Reading body failed!")
 			}
 
-			if bufLen < cap(buffer) || err == io.EOF {
+			if err == io.EOF {
 				eof = true
 			}
 		}
