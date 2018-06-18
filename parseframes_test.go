@@ -16,8 +16,8 @@ func TestParseFrameReturnsCorrectMessages(t *testing.T) {
 
 func TestParseFrameBodyExceedingBufferSize(t *testing.T) {
 	body := bytes.NewReader([]byte("10 123456789 5 12 3 "))
-	bufSize := 5
-	msgs, err := parseFramesWithBufSize(body, bufSize)
+	buffer := make([]byte, 5)
+	msgs, err := parseFramesWithBuffer(body, buffer)
 
 	assert.Nil(t, err)
 	assert.Len(t, msgs, 2)
@@ -26,8 +26,8 @@ func TestParseFrameBodyExceedingBufferSize(t *testing.T) {
 
 func TestParseFrameLengthEndOfBuffer(t *testing.T) {
 	body := bytes.NewReader([]byte("2 1210 1234567890"))
-	bufSize := 5
-	msgs, err := parseFramesWithBufSize(body, bufSize)
+	buffer := make([]byte, 5)
+	msgs, err := parseFramesWithBuffer(body, buffer)
 
 	assert.Nil(t, err)
 	assert.Len(t, msgs, 2)

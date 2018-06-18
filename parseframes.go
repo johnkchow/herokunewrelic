@@ -2,8 +2,10 @@ package main
 
 import (
 	"bytes"
+	bp "github.com/oxtoacart/bpool"
 	"github.com/pkg/errors"
 	"io"
+	"os"
 	"strconv"
 )
 
@@ -15,6 +17,30 @@ func minInt(x, y int) int {
 	return y
 }
 
+// By default, we will pre-allocate ~500kB of byte buffers
+var bPool = bp.NewBytePool(
+	atoi(getEnvFallback("REQUEST_BUFFER_POOL_SIZE", "500")),
+	atoi(getEnvFallback("REQUEST_BUFFER_SIZE", "1024")),
+)
+
+func getEnvFallback(key string, fallback string) string {
+	res := os.Getenv(key)
+	if res == "" {
+		return fallback
+	}
+	return res
+}
+
+func atoi(s string) int {
+	val, err := strconv.Atoi(s)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return val
+}
+
 // parseFrames Parses a request's body and returns an array framed messsages
 //
 // Heroku's request body are formatted using the octect counting framing method.
@@ -23,15 +49,13 @@ func minInt(x, y int) int {
 // 	https://devcenter.heroku.com/articles/log-drains
 // 	https://tools.ietf.org/html/rfc6587#section-3.4.1
 func parseFrames(body io.Reader) ([][]byte, error) {
-	return parseFramesWithBufSize(body, 1024)
+	buffer := bPool.Get()
+	defer bPool.Put(buffer)
+
+	return parseFramesWithBuffer(body, buffer)
 }
 
-func parseFramesWithBufSize(body io.Reader, bufSize int) ([][]byte, error) {
-	var bodyStr string
-	var bodyLen int64
-
-	buffer := make([]byte, bufSize)
-
+func parseFramesWithBuffer(body io.Reader, buffer []byte) ([][]byte, error) {
 	// State machine to parse body.
 	// 1 - "length" - Reads until finds space
 	// 2 - "body" - Reads until length is reached
@@ -144,7 +168,6 @@ func parseFramesWithBufSize(body io.Reader, bufSize int) ([][]byte, error) {
 		logger.Debugf("Message '%s'", string(m))
 	}
 	logger.Debugf("Final state: %v, lastState: %v", state, lastState)
-	logger.Debugf("Body (%v): %s", bodyLen, bodyStr)
 
 	if state == 1 && lastState == 2 {
 		return messages, nil

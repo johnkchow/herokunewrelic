@@ -22,6 +22,12 @@
   version = "v2.0.0"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/oxtoacart/bpool"
+  packages = ["."]
+  revision = "4e1c5567d7c2dd59fa4c7c83d34c2f3528b025d6"
+
+[[projects]]
   name = "github.com/pkg/errors"
   packages = ["."]
   revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
@@ -76,6 +82,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "a009bf2fd48f0961886c3bea6b7c22ae91dda025c2b12c204b0f1c91fca21f69"
+  inputs-digest = "23d10aed0014c25c20bd8fc95962656a0d4a68072c06026a0c167884b4827603"
   solver-name = "gps-cdcl"
   solver-version = 1

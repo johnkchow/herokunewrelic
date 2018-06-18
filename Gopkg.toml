@@ -48,3 +48,7 @@
 [metadata.heroku]
   root-package = "github.com/johnkchow/herokunewrelic"
   go-version = "go1.9.7"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/oxtoacart/bpool"
