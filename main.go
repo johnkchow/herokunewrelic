@@ -24,19 +24,6 @@ func main() {
 	logplexHandler := newLogplexHandler(app)
 
 	http.HandleFunc(nr.WrapHandleFunc(app, "/", func(rw http.ResponseWriter, req *http.Request) {
-		/*
-			TODO: Things to consider:
-			  [X] NewRelic
-				[ ] Tagged logs with Request ID
-			  [ ] Be idempotent (Logplex-Frame-Id)
-			  [ ] Operations
-				    [ ] Memory/CPU usage
-				    [ ] GC times?
-				    [ ] Go routines?
-				[ ] Support for multiple log drain tokens
-			  [ ] Logging for future debugging e.g. `User-Agent` since it maps to release version
-		*/
-
 		if authSecret != "" {
 			_, pass, ok := req.BasicAuth()
 
