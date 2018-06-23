@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/johnkchow/herokunewrelic.svg?branch=master)](https://travis-ci.org/johnkchow/herokunewrelic)
+
 # Getting Started
 
 ```bash
