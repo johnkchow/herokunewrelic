@@ -7,22 +7,25 @@ import (
 	"strings"
 )
 
-// Heroku metrics regex format
-var metricsRegex = regexp.MustCompile(`^\s*([!-~]+=[!-~]+\s*)+$`)
+var kvpRegex = regexp.MustCompile(`^\s*([!-~]+=[!-~]+\s*)+$`)
 
 // Regex to find/replace with nothing
 var normalizeRegex = regexp.MustCompile(`^sample#`)
 
-// parseMetrics This function returns a map of all the attributes. This **only** parses for Dyno + Postgres metrics, and will return an error if it isn't a metric log
-func parseMetrics(body string) (map[string]interface{}, error) {
+var numWithUnitRegex = regexp.MustCompile(`^(\d+(\.\d+)?)([a-zA-Z]+)$`)
 
-	if !metricsRegex.MatchString(body) {
+// parseKvp This function returns a map of all the key-value pairs within a log
+// message. This returns an `error` object if the string isn't a valid kvp
+// format.
+func parseKvp(msg string) (map[string]interface{}, error) {
+
+	if !kvpRegex.MatchString(msg) {
 		return nil, errors.New("Parsing error: invalid kvp format")
 	}
 
 	payload := make(map[string]interface{})
 
-	for _, str := range strings.Split(body, " ") {
+	for _, str := range strings.Split(msg, " ") {
 		parts := strings.Split(str, "=")
 
 		samples := parseMetricValue(parts[1])
@@ -31,10 +34,6 @@ func parseMetrics(body string) (map[string]interface{}, error) {
 			name := normalizeMetricName(parts[0], s.Unit)
 			payload[name] = s.Value
 		}
-	}
-
-	if !isMetrics(payload) {
-		return payload, errors.New("Payload has key-values but is not dyno/postgres metrics")
 	}
 
 	return payload, nil
@@ -71,9 +70,7 @@ func parseMetricValue(value string) []*metricSample {
 		return samples
 	}
 
-	numWithUnit := regexp.MustCompile(`^(\d+(\.\d+)?)([a-zA-Z]+)$`)
-
-	matches := numWithUnit.FindAllStringSubmatch(value, -1)
+	matches := numWithUnitRegex.FindAllStringSubmatch(value, -1)
 
 	// Checks if value doesn't match a numerical value w/ unit
 	if len(matches) == 0 {
@@ -116,9 +113,4 @@ func normalizeStorageSize(num float64, unit string) (float64, string) {
 
 func parseNumber(value string) (float64, error) {
 	return strconv.ParseFloat(value, 64)
-}
-
-func isMetrics(payload map[string]interface{}) bool {
-	return payload["load_avg_1m"] != nil ||
-		payload["memory_total_MB"] != nil
 }

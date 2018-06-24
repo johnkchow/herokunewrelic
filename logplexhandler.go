@@ -52,7 +52,7 @@ func newLogplexHandler(app nr.Application) http.HandlerFunc {
 
 			var metrics map[string]interface{}
 
-			metrics, err = parseMetrics(msg.Msg)
+			metrics, err = parseKvp(msg.Msg)
 
 			if err != nil {
 				logger.Debugf("Error parsing metrics: %s", err.Error())
@@ -67,9 +67,22 @@ func newLogplexHandler(app nr.Application) http.HandlerFunc {
 			// We cannot use `appName` since it's reserved to the current app's name
 			metrics["sourceAppName"] = appName
 
-			app.RecordCustomEvent("DynoMetric", metrics)
+			if msg.ProcID == "heroku-postgres" {
+				app.RecordCustomEvent("PostgresMetric", metrics)
+			} else if msg.ProcID == "heroku-redis" {
+				app.RecordCustomEvent("RedisMetric", metrics)
+			} else if metrics["event_name"] != nil {
+				app.RecordCustomEvent(metrics["event_name"].(string), metrics)
+			} else if isDynoMetric(metrics) {
+				app.RecordCustomEvent("DynoMetric", metrics)
+			}
 		}
 
 		rr.WriteHeader(http.StatusOK)
 	}
+}
+
+func isDynoMetric(payload map[string]interface{}) bool {
+	return payload["load_avg_1m"] != nil ||
+		payload["memory_total_MB"] != nil
 }

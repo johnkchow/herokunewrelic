@@ -13,8 +13,11 @@ export AUTH_SECRET=auth_secret
 # TODO
 
 * [X] NewRelic
+* [ ] Parse arbitrary metrics in addition to dyno runtime metrics
 * [ ] Tagged logs with Request ID
 * [ ] Be idempotent (Logplex-Frame-Id)
+* [ ] Support custom event backends
+* [ ] Turn parseFrames into iterator to further reduce memory footprint
 * [X] Operations
   * [X] Memory/CPU usage
   * [X] GC times

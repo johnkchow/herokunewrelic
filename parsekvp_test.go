@@ -8,7 +8,7 @@ import (
 func TestDynoLoadMetrics(t *testing.T) {
 	msg := "source=web.4 dyno=heroku.18186867.69773a68-35f0-4cc3-aa48-e956a04c2c8b sample#load_avg_1m=0.27 sample#load_avg_5m=0.22 sample#load_avg_15m=0.19"
 
-	metrics, err := parseMetrics(msg)
+	metrics, err := parseKvp(msg)
 
 	assert.Nil(t, err)
 
@@ -28,7 +28,7 @@ func TestDynoLoadMetrics(t *testing.T) {
 func TestDynoMemoryMetrics(t *testing.T) {
 	msg := "source=web.4 dyno=heroku.18186867.69773a68-35f0-4cc3-aa48-e956a04c2c8b sample#memory_total=7020.55MB sample#memory_rss=7013.48MB sample#memory_cache=7.08MB sample#memory_swap=0.00MB sample#memory_pgpgin=1949515pages sample#memory_pgpgout=779250pages sample#memory_quota=14336.00MB"
 
-	metrics, err := parseMetrics(msg)
+	metrics, err := parseKvp(msg)
 
 	assert.Nil(t, err)
 
@@ -52,7 +52,7 @@ func TestDynoMemoryMetrics(t *testing.T) {
 func TestPostgresMetrics(t *testing.T) {
 	msg := "source=HEROKU_POSTGRESQL_ONYX sample#current_transaction=153674642 sample#db_size=53666224664bytes sample#tables=105 sample#active-connections=20 sample#waiting-connections=0 sample#index-cache-hit-rate=0.99832 sample#table-cache-hit-rate=0.9657 sample#load-avg-1m=0.01 sample#load-avg-5m=0.045 sample#load-avg-15m=0.025 sample#read-iops=0.58264 sample#write-iops=3.8988 sample#memory-total=8173656kB sample#memory-free=1124196kB sample#memory-cached=5935596kB sample#memory-postgres=111996kB"
 
-	metrics, err := parseMetrics(msg)
+	metrics, err := parseKvp(msg)
 
 	assert.Nil(t, err)
 
@@ -89,7 +89,7 @@ func TestPostgresMetrics(t *testing.T) {
 func TestRedisMetrics(t *testing.T) {
 	msg := "source=HEROKU_REDIS_BLUE sample#active-connections=15 sample#load-avg-1m=0.16 sample#load-avg-5m=0.1 sample#load-avg-15m=0.075 sample#read-iops=0 sample#write-iops=0.034583 sample#memory-total=15664360kB sample#memory-free=11254388kB sample#memory-cached=2726820kB sample#memory-redis=2087784bytes sample#hit-rate=0.094117 sample#evicted-keys=0"
 
-	metrics, err := parseMetrics(msg)
+	metrics, err := parseKvp(msg)
 
 	assert.Nil(t, err)
 
