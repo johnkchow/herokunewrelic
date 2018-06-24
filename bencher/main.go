@@ -61,12 +61,9 @@ func bodyWithFrames() (string, int) {
 		[]byte("551 <40>3 2012-11-30T06:45:29+00:00 host app heroku-postgres - source=HEROKU_POSTGRESQL_ONYX sample#current_transaction=153674642 sample#db_size=53666224664bytes sample#tables=105 sample#active-connections=20 sample#waiting-connections=0 sample#index-cache-hit-rate=0.99832 sample#table-cache-hit-rate=0.9657 sample#load-avg-1m=0.01 sample#load-avg-5m=0.045 sample#load-avg-15m=0.025 sample#read-iops=0.58264 sample#write-iops=3.8988 sample#memory-total=8173656kB sample#memory-free=1124196kB sample#memory-cached=5935596kB sample#memory-postgres=111996kB"),
 	}
 
-	randMsgCount := rand.Intn(100)
-	logger.Debug(fmt.Sprintf("Rand %d", randMsgCount))
-	randMsgCount = rand.Intn(100)
-	logger.Debug(fmt.Sprintf("Rand %d", randMsgCount))
-
-	for i := 0; i < randMsgCount+50; i++ {
+	// On average, logplex request payloads are ~5kB
+	randMsgCount := rand.Intn(10)
+	for i := 0; i < randMsgCount; i++ {
 		frames = append(frames, []byte(randomLogFrame()))
 	}
 
