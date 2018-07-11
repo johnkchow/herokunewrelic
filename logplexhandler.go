@@ -50,31 +50,33 @@ func newLogplexHandler(app nr.Application) http.HandlerFunc {
 				return
 			}
 
-			var metrics map[string]interface{}
+			var payload map[string]interface{}
 
-			metrics, err = parseKvp(msg.Msg)
+			payload, err = parseKvp(msg.Msg)
 
 			if err != nil {
-				logger.Debugf("Error parsing metrics: %s", err.Error())
+				logger.Debugf("Error parsing payload: %s", err.Error())
 				continue
 			}
 
 			// NewRelic only receives either seconds or milliseconds.
 			// See
 			// https://docs.newrelic.com/docs/insights/insights-data-sources/custom-data/insert-custom-events-insights-api#timestamps
-			metrics["timestamp"] = msg.Timestamp.UnixNano() / 1000000
+			payload["timestamp"] = msg.Timestamp.UnixNano() / 1000000
 
 			// We cannot use `appName` since it's reserved to the current app's name
-			metrics["sourceAppName"] = appName
+			payload["sourceAppName"] = appName
 
 			if msg.ProcID == "heroku-postgres" {
-				app.RecordCustomEvent("PostgresMetric", metrics)
+				app.RecordCustomEvent("PostgresMetric", payload)
 			} else if msg.ProcID == "heroku-redis" {
-				app.RecordCustomEvent("RedisMetric", metrics)
-			} else if metrics["event_name"] != nil {
-				app.RecordCustomEvent(metrics["event_name"].(string), metrics)
-			} else if isDynoMetric(metrics) {
-				app.RecordCustomEvent("DynoMetric", metrics)
+				app.RecordCustomEvent("RedisMetric", payload)
+			} else if payload["event_name"] != nil {
+				app.RecordCustomEvent(payload["event_name"].(string), payload)
+			} else if msg.Appname == "heroku" && msg.ProcID == "router" && isRouterError(payload) {
+				app.RecordCustomEvent("HerokuError", payload)
+			} else if msg.Appname == "heroku" && isDynoMetric(payload) {
+				app.RecordCustomEvent("DynoMetric", payload)
 			}
 		}
 
@@ -85,4 +87,9 @@ func newLogplexHandler(app nr.Application) http.HandlerFunc {
 func isDynoMetric(payload map[string]interface{}) bool {
 	return payload["load_avg_1m"] != nil ||
 		payload["memory_total_MB"] != nil
+}
+
+func isRouterError(payload map[string]interface{}) bool {
+	return payload["at"] != nil &&
+		payload["code"] != nil
 }

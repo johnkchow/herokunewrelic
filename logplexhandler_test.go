@@ -19,6 +19,7 @@ var frames = [][]byte{
 	[]byte("387 <134>1 2018-06-15T21:39:20+00:00 host app heroku-redis - source=HEROKU_REDIS_WHITE sample#active-connections=1 sample#load-avg-1m=0.04 sample#load-avg-5m=0.09 sample#load-avg-15m=0.085 sample#read-iops=0 sample#write-iops=0 sample#memory-total=15664360kB sample#memory-free=9891092kB sample#memory-cached=3415688kB sample#memory-redis=1757408bytes sample#hit-rate=1 sample#evicted-keys=0"),
 	[]byte("293 <40>3 2012-11-30T06:45:29+00:00 host app web.4 - event_name=PgBouncerMetric source=PGBOUNCER sample#avg_req=1 sample#avg_recv=2 sample#avg_sent=3 sample#avg_query=4 sample#cl_active=5 sample#cl_waiting=6 sample#sv_active=7 sample#sv_idle=8 sample#sv_used=9 sample#sv_login=10 sample#maxwait=11"),
 	[]byte("88 <40>3 2012-11-30T06:45:29+00:00 host app web.4 - event_name=AppDefinedCustomMetric foo=1"),
+	[]byte(`197 <40>3 2012-11-30T06:45:29+00:00 host heroku router - at=error code=H11 desc="Backlog too deep" method=GET path="/" host=myapp.herokuapp.com fwd=17.17.17.17 dyno= connect= service= status=503 bytes=`),
 }
 
 // NOTE: This variable is a concat of the `frames` above, which is done in init()
@@ -36,9 +37,10 @@ func TestLogplexHandlerNewRelicIsCalledCorrectly(t *testing.T) {
 	app.On("RecordCustomEvent", "RedisMetric", mock.Anything).Return(nil)
 	app.On("RecordCustomEvent", "PgBouncerMetric", mock.Anything).Return(nil)
 	app.On("RecordCustomEvent", "AppDefinedCustomMetric", mock.Anything).Return(nil)
+	app.On("RecordCustomEvent", "HerokuError", mock.Anything).Return(nil)
 
 	newLogplexHandler(app)(rr, req)
-	app.AssertNumberOfCalls(t, "RecordCustomEvent", 6)
+	app.AssertNumberOfCalls(t, "RecordCustomEvent", 7)
 
 	assert.Equal(t, map[string]interface{}{
 		"source":        "web.4",
@@ -56,6 +58,7 @@ func TestLogplexHandlerNewRelicIsCalledCorrectly(t *testing.T) {
 	assert.Equal(t, "RedisMetric", app.Calls[3].Arguments.Get(0))
 	assert.Equal(t, "PgBouncerMetric", app.Calls[4].Arguments.Get(0))
 	assert.Equal(t, "AppDefinedCustomMetric", app.Calls[5].Arguments.Get(0))
+	assert.Equal(t, "HerokuError", app.Calls[6].Arguments.Get(0))
 }
 
 func TestLogplexHandlerEmptySuccessResponseReturned(t *testing.T) {
@@ -70,6 +73,7 @@ func TestLogplexHandlerEmptySuccessResponseReturned(t *testing.T) {
 	app.On("RecordCustomEvent", "RedisMetric", mock.Anything).Return(nil)
 	app.On("RecordCustomEvent", "PgBouncerMetric", mock.Anything).Return(nil)
 	app.On("RecordCustomEvent", "AppDefinedCustomMetric", mock.Anything).Return(nil)
+	app.On("RecordCustomEvent", "HerokuError", mock.Anything).Return(nil)
 
 	newLogplexHandler(app)(rr, req)
 
@@ -90,7 +94,7 @@ func init() {
 func buildRequest() *http.Request {
 	req, _ := http.NewRequest("GET", "/", bytes.NewReader(logplexBody))
 
-	req.Header.Add("Logplex-Msg-Count", "8")
+	req.Header.Add("Logplex-Msg-Count", "9")
 	req.Header.Add("Logplex-Msg-Id", "someid")
 	req.Header.Add("Logplex-Drain-Token", "draintoken")
 	req.Header.Add("User-Agent", "Logplex/v72")

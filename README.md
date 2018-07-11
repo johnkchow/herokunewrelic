@@ -13,7 +13,8 @@ export AUTH_SECRET=auth_secret
 # TODO
 
 * [X] NewRelic
-* [ ] Parse arbitrary metrics in addition to dyno runtime metrics
+* [X] Parse arbitrary metrics in addition to dyno runtime metrics
+* [ ] Honor env var LOG_LEVEL
 * [ ] Tagged logs with Request ID
 * [ ] Be idempotent (Logplex-Frame-Id)
 * [ ] Support custom event backends
