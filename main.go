@@ -7,23 +7,19 @@ import (
 )
 
 func main() {
-	appName := getEnv("NEW_RELIC_APP_NAME", "HEROKU_APP_NAME")
-	licenseKey := getEnv("NEW_RELIC_LICENSE_KEY")
+	streamingLicenseKey := getEnv("NEW_RELIC_STREAMING_LICENSE_KEY")
+	appLicenseKey := os.Getenv("NEW_RELIC_LICENSE_KEY")
 	authSecret := os.Getenv("AUTH_SECRET")
 
-	config := nr.NewConfig(appName, licenseKey)
-	if os.Getenv("APP_ENV") != "production" {
-		config.Logger = nr.NewDebugLogger(os.Stdout)
-	}
-	app, err := nr.NewApplication(config)
+	app, aErr := newNewRelicApp(appLicenseKey)
+	streamingApp, sErr := newNewRelicApp(streamingLicenseKey)
 
-	if err != nil {
-		panic(err.Error())
+	if sErr != nil {
+		panic(sErr.Error())
 	}
 
-	logplexHandler := newLogplexHandler(app)
-
-	http.HandleFunc(nr.WrapHandleFunc(app, "/", func(rw http.ResponseWriter, req *http.Request) {
+	logplexHandler := newLogplexHandler(streamingApp)
+	mainHandler := func(rw http.ResponseWriter, req *http.Request) {
 		if authSecret != "" {
 			_, pass, ok := req.BasicAuth()
 
@@ -35,7 +31,13 @@ func main() {
 		}
 
 		logplexHandler(rw, req)
-	}))
+	}
+
+	if aErr != nil {
+		http.HandleFunc(nr.WrapHandleFunc(app, "/", mainHandler))
+	} else {
+		http.HandleFunc("/", mainHandler)
+	}
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -55,4 +57,15 @@ func getEnv(mainKey string, otherKeys ...string) string {
 	}
 
 	panic("Env var for " + mainKey + " is missing. Please make sure that env var is set")
+}
+
+func newNewRelicApp(licenseKey string) (nr.Application, error) {
+	appName := getEnv("NEW_RELIC_APP_NAME", "HEROKU_APP_NAME")
+	config := nr.NewConfig(appName, licenseKey)
+
+	if os.Getenv("APP_ENV") != "production" {
+		config.Logger = nr.NewDebugLogger(os.Stdout)
+	}
+
+	return nr.NewApplication(config)
 }
