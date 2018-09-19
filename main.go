@@ -33,7 +33,7 @@ func main() {
 		logplexHandler(rw, req)
 	}
 
-	if aErr != nil {
+	if aErr == nil {
 		http.HandleFunc(nr.WrapHandleFunc(app, "/", mainHandler))
 	} else {
 		http.HandleFunc("/", mainHandler)
