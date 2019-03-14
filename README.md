@@ -21,7 +21,7 @@ go test -v
 * https://golang.github.io/dep/docs/daily-dep.html
 * https://github.com/moovweb/gvm
 
-# How to setup on Heroku
+# How to setup on Heroku as a log drain
 
 Supposed that:
 
